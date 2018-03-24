@@ -32,6 +32,7 @@ RUN docker-php-ext-install zip \
 
 # Add the composer installer script
 ADD usr/local/bin/install-composer.sh /usr/local/bin/install-composer.sh
+ADD usr/local/bin/docker-image-entrypoint.sh /usr/local/bin/docker-image-entrypoint
 
 # Install Composer
 RUN chmod +x /usr/local/bin/install-composer.sh \
@@ -41,8 +42,18 @@ RUN chmod +x /usr/local/bin/install-composer.sh \
  && chown php:php /usr/local/bin/composer \
  && rm /usr/local/bin/install-composer.sh
 
+RUN chmod +x /usr/local/bin/docker-image-entrypoint
+
+# Add Tini
+ENV TINI_VERSION v0.17.0
+ADD https://github.com/krallin/tini/releases/download/${TINI_VERSION}/tini /sbin/tini
+RUN chmod +x /sbin/tini
+
 # Run the container as the configured user
 USER php:php
 
 # Execute composer
-ENTRYPOINT ["composer"]
+ENTRYPOINT ["/usr/local/bin/docker-image-entrypoint"]
+
+# The default command to execute
+CMD ["composer"]
